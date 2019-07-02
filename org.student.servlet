@@ -49,3 +49,120 @@ public class AddStudentServlet extends HttpServlet {
 	}
 
 }
+@WebServlet("/DelectStudentServlet")
+public class DeleteStudentServlet extends HttpServlet {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		// 删除
+		request.setCharacterEncoding("utf-8");
+		int no = Integer.parseInt(request.getParameter("sno"));// Integer.parseInt
+
+		//接口 x=new 实现类();
+		IStudentService service = new StudentServiceImpl();
+		boolean result = service.deleteStudent(no);
+
+		response.setCharacterEncoding("utf-8");
+		response.setContentType("text/html; charset=UTF-8");
+
+		if (!result) {
+
+			request.setAttribute("delete", "deleteError");
+
+		} else {
+
+			request.setAttribute("delete", "noDeleteError");
+		}
+		request.getRequestDispatcher("QueryAllStudentsServlet").forward(request, response);
+		
+
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}
+@WebServlet("/QueryAllStudentsServlet" )
+public class QueryAllStudentsServlet extends HttpServlet {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		request.setCharacterEncoding("utf-8");
+		
+		//接口 x=new 实现类();
+		IStudentService service=new StudentServiceImpl();
+		List<Student> students= service.queryAllStudents();
+		System.out.println(students);
+		
+		request.setAttribute("students", students);
+		//因为request域中有数据，因此需要通过请求转发的方式跳转（重定向会丢失request域）
+		//pageContext<request<session<application
+		request.getRequestDispatcher("index.jsp").forward(request, response);
+		
+		
+	}
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}
+@WebServlet("/QueryStudentBySnoServlet")
+public class QueryStudentBySnoServlet extends HttpServlet {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		request.setCharacterEncoding("utf-8");
+		int no=Integer.parseInt(request.getParameter("sno"));
+		
+		//接口 x=new 实现类();
+		IStudentService service=new StudentServiceImpl();
+		Student student= service.queryStudentByNo(no);
+		System.out.println(student);
+		//将此人的数据通过前台jsp显示studentInfo.jsp
+		//将查询到的学生放到request域中（request.setAttribute()）
+		request.setAttribute("student", student);
+		
+		//request域中有信息，使用请求转发（request.getRequestDispatcher()）
+		request.getRequestDispatcher("studentInfo.jsp").forward(request, response);;
+		
+	}
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}
+@WebServlet("/UpdateStudentServlet")
+public class UpdateStudentServlet extends HttpServlet {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		request.setCharacterEncoding("utf-8");
+		// 获取待修改的人的学号
+		int no = Integer.parseInt(request.getParameter("sno"));
+		// 获取修改后的内容
+		String name = request.getParameter("sname");
+		int age = Integer.parseInt(request.getParameter("sage"));
+		String address = request.getParameter("saddress");
+		// 将修改后的内容封装到一个实体类中
+		Student student = new Student(name, age, address);
+
+		//接口 x=new 实现类();
+		IStudentService service = new StudentServiceImpl();
+		boolean result = service.updateStudentBySno(no, student);
+
+		response.setCharacterEncoding("utf-8");
+		response.setContentType("text/html; charset=UTF-8");
+		if (!result) {
+
+			request.setAttribute("update", "updateError");
+
+		} else {
+
+			request.setAttribute("update", "noUpdateError");
+		}
+		request.getRequestDispatcher("QueryAllStudentsServlet").forward(request, response);
+
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}
