@@ -1,0 +1,147 @@
+package org.student.dao.impl;
+
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.student.dao.IStudentDao;
+import org.student.entity.Student;
+import org.student.util.DBUtil;
+
+//数据访问层： 原子性的增删改查
+public class StudentDaoImpl implements IStudentDao {
+
+	private final String URL = "jdbc:mysql://localhost:3306/frist01";
+	private final String USER = "root";
+	private final String PWD = "root";
+
+	public boolean isExist(int sno) {// true:此存在；false：此人不存在
+		return queryStudentByNo(sno) == null ? false : true;
+
+	}
+
+	public boolean addStudent(Student student) {
+		String sql = "insert into student values(?,?,?,?)";
+		Object[] params = { student.getSno(), student.getSname(), student.getSage(), student.getSaddress() };
+
+		return DBUtil.executeUpdate(sql, params);
+	}
+
+//根据学号查询学生
+	public Student queryStudentByNo(int sno) {
+		PreparedStatement pstmt = null;
+		Student student = null;
+		ResultSet rs = null;
+		try {
+			String sql = "select * from student where id=?";
+			Object[] params = { sno };
+			rs = DBUtil.executeQuery(sql, params);
+			if (rs.next()) {
+				int no = rs.getInt("id");
+				String name = rs.getString("name");
+				int age = rs.getInt("age");
+				String address = rs.getString("address");
+				student = new Student(no, name, age, address);
+			}
+			return student;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			DBUtil.closeAll(rs, pstmt, DBUtil.connection);
+		}
+
+	}
+
+	// 查询全部学生
+	public List<Student> queryAllStudents() {
+		List<Student> students = new ArrayList<>();
+
+		Student student = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try {
+
+			String sql = "select * from student  ";
+			rs = DBUtil.executeQuery(sql, null);
+			while (rs.next()) {
+				int no = rs.getInt("id");
+				String name = rs.getString("name");
+				int age = rs.getInt("age");
+				String address = rs.getString("address");
+				student = new Student(no, name, age, address);
+				students.add(student);
+			}
+			return students;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			DBUtil.closeAll(rs, pstmt, DBUtil.connection);
+		}
+
+	}
+
+	// 根据姓名查询学生
+	// 根据年龄查询学生
+	// 查询此人是否存在
+	public boolean isExit(int sno) {
+		return queryStudentByNo(sno) == null ? false : true;
+
+	}
+
+//根据学号删除学生
+	public boolean deleteStudentByNo(int sno) {
+
+		String sql = "delete  from student where id=? ";
+		Object[] params = { sno };
+		return DBUtil.executeUpdate(sql, params);
+
+	}
+
+//根据学号修改学生:根据sno知道待修改的人，把这个人修改成student
+	public boolean updateStudentBySno(int sno, Student student) {
+		String sql = "delete  from student where id=? ";
+		Object[] params = { sno };
+		return DBUtil.executeUpdate(sql, params);
+	}
+	public int getTotalCount() {
+		String sql="select count(1) from student";
+		return DBUtil.getTotalCount(sql);
+	}
+	public List<Student> queryStudentsByPage(int currentPage,int pageSize){
+		
+		String sql="select * from student limit ?,?";
+		Object[] params= {currentPage*pageSize,pageSize};
+		ResultSet rs= DBUtil.executeQuery(sql, params);
+		List<Student> students=new ArrayList<>();
+		try {
+			while(rs.next()){
+				Student student=new Student(rs.getInt("id"),rs.getString("name"),rs.getInt("age"),rs.getString("address"));
+				students.add(student);
+				
+			}
+		} catch (SQLException e) {
+			// TODO 自动生成的 catch 块
+			e.printStackTrace();
+		}catch (Exception e) {
+			// TODO 自动生成的 catch 块
+			e.printStackTrace();
+		}
+		return students;
+	}
+
+}
